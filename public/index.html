@@ -1,0 +1,842 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Claude Approve</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@xterm/xterm@5.5.0/css/xterm.min.css">
+  <style>
+    :root {
+      --bg-primary: #0d1117;
+      --bg-secondary: #161b22;
+      --bg-tertiary: #21262d;
+      --border: #30363d;
+      --text-primary: #e6edf3;
+      --text-secondary: #8b949e;
+      --text-muted: #484f58;
+      --accent-green: #3fb950;
+      --accent-green-bg: #1a3a2a;
+      --accent-red: #f85149;
+      --accent-red-bg: #3d1a1a;
+      --accent-yellow: #d29922;
+      --accent-yellow-bg: #3d2e00;
+      --accent-blue: #58a6ff;
+      --accent-blue-bg: #1a2a3d;
+      --accent-purple: #bc8cff;
+      --shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+      --radius: 12px;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* Status Bar */
+    .status-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 16px;
+      background: var(--bg-secondary);
+      border-bottom: 1px solid var(--border);
+      min-height: 44px;
+      flex-shrink: 0;
+    }
+
+    .status-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--text-muted);
+      transition: background 0.3s;
+    }
+    .status-dot.connected { background: var(--accent-green); box-shadow: 0 0 8px var(--accent-green); }
+    .status-dot.session-active { background: var(--accent-blue); box-shadow: 0 0 8px var(--accent-blue); }
+    .status-dot.disconnected { background: var(--accent-red); box-shadow: 0 0 8px var(--accent-red); }
+
+    .status-label {
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    .logo {
+      font-weight: 700;
+      font-size: 15px;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .badge {
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-weight: 600;
+      background: var(--accent-blue-bg);
+      color: var(--accent-blue);
+    }
+    .badge.pending {
+      background: var(--accent-yellow-bg);
+      color: var(--accent-yellow);
+      animation: pulse-badge 1.5s infinite;
+    }
+
+    @keyframes pulse-badge {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.6; }
+    }
+
+    /* Terminal Container */
+    .terminal-container {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+    }
+
+    #terminal {
+      height: 100%;
+      padding: 4px;
+    }
+
+    /* Permission Overlay */
+    .permission-overlay {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      pointer-events: none;
+    }
+
+    .permission-card {
+      pointer-events: auto;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: var(--radius) var(--radius) 0 0;
+      box-shadow: var(--shadow);
+      padding: 0;
+      margin: 0 auto;
+      max-width: 600px;
+      animation: slide-up 0.3s ease-out;
+      overflow: hidden;
+    }
+
+    @keyframes slide-up {
+      from { transform: translateY(100%); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    @keyframes slide-down {
+      from { transform: translateY(0); opacity: 1; }
+      to { transform: translateY(100%); opacity: 0; }
+    }
+
+    .permission-card.resolving {
+      animation: slide-down 0.3s ease-in forwards;
+    }
+
+    .permission-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 16px;
+      background: var(--accent-yellow-bg);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .permission-icon {
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+
+    .permission-title {
+      font-weight: 600;
+      font-size: 14px;
+      color: var(--accent-yellow);
+    }
+
+    .permission-time {
+      margin-left: auto;
+      font-size: 11px;
+      color: var(--text-muted);
+      flex-shrink: 0;
+    }
+
+    .permission-body {
+      padding: 14px 16px;
+    }
+
+    .permission-tool {
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+    }
+
+    .permission-tool strong {
+      color: var(--text-primary);
+      font-family: 'SF Mono', 'Menlo', 'Consolas', monospace;
+    }
+
+    .permission-details {
+      background: var(--bg-primary);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-family: 'SF Mono', 'Menlo', 'Consolas', monospace;
+      font-size: 12px;
+      color: var(--text-secondary);
+      max-height: 120px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      word-break: break-all;
+      margin-bottom: 14px;
+    }
+
+    .permission-actions {
+      display: flex;
+      gap: 8px;
+      padding: 0 16px 14px;
+    }
+
+    .btn {
+      flex: 1;
+      padding: 12px 16px;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      min-height: 44px;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .btn:active { transform: scale(0.97); }
+
+    .btn-approve {
+      background: var(--accent-green);
+      color: #000;
+    }
+    .btn-approve:hover { background: #4ac35a; }
+
+    .btn-deny {
+      background: var(--accent-red);
+      color: #fff;
+    }
+    .btn-deny:hover { background: #f96961; }
+
+    .btn-always {
+      background: var(--bg-tertiary);
+      color: var(--text-primary);
+      border: 1px solid var(--border);
+      flex: 0.7;
+    }
+    .btn-always:hover { background: var(--border); }
+
+    /* History Panel */
+    .history-toggle {
+      position: fixed;
+      top: 52px;
+      right: 8px;
+      z-index: 50;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 6px 10px;
+      color: var(--text-secondary);
+      font-size: 12px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .history-toggle:hover { background: var(--bg-tertiary); }
+
+    .history-panel {
+      position: fixed;
+      top: 44px;
+      right: 0;
+      bottom: 0;
+      width: min(360px, 85vw);
+      background: var(--bg-secondary);
+      border-left: 1px solid var(--border);
+      z-index: 90;
+      transform: translateX(100%);
+      transition: transform 0.25s ease;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .history-panel.open { transform: translateX(0); }
+
+    .history-header {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border);
+      font-weight: 600;
+      font-size: 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .history-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px;
+    }
+
+    .history-item {
+      padding: 10px 12px;
+      border-radius: 8px;
+      margin-bottom: 6px;
+      font-size: 12px;
+      background: var(--bg-primary);
+      border: 1px solid var(--border);
+    }
+
+    .history-item .tool-name {
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 4px;
+    }
+
+    .history-item .status {
+      font-size: 11px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      display: inline-block;
+    }
+    .history-item .status.approved { background: var(--accent-green-bg); color: var(--accent-green); }
+    .history-item .status.denied { background: var(--accent-red-bg); color: var(--accent-red); }
+    .history-item .status.pending { background: var(--accent-yellow-bg); color: var(--accent-yellow); }
+    .history-item .status.always { background: var(--accent-blue-bg); color: var(--accent-blue); }
+
+    .history-item .time {
+      font-size: 11px;
+      color: var(--text-muted);
+      float: right;
+    }
+
+    /* Empty State */
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      color: var(--text-muted);
+      text-align: center;
+      padding: 20px;
+    }
+    .empty-state .icon { font-size: 48px; margin-bottom: 12px; }
+    .empty-state .title { font-size: 16px; margin-bottom: 4px; color: var(--text-secondary); }
+    .empty-state .subtitle { font-size: 13px; }
+
+    /* Notification Toast */
+    .toast {
+      position: fixed;
+      top: 56px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-20px);
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 16px;
+      font-size: 13px;
+      color: var(--text-primary);
+      z-index: 200;
+      opacity: 0;
+      transition: all 0.3s;
+      pointer-events: none;
+      white-space: nowrap;
+    }
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* Notification Sound */
+    .sound-toggle {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 16px;
+      padding: 4px;
+    }
+    .sound-toggle:hover { color: var(--text-secondary); }
+
+    /* Mobile Adjustments */
+    @media (max-width: 768px) {
+      .permission-card {
+        border-radius: var(--radius) var(--radius) 0 0;
+        max-width: 100%;
+      }
+
+      .status-bar { padding: 6px 12px; }
+      .logo span { display: none; }
+
+      .btn { padding: 14px 12px; }
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+  </style>
+</head>
+<body>
+  <!-- Status Bar -->
+  <div class="status-bar">
+    <div class="status-left">
+      <div class="logo">🔐 <span>Claude Approve</span></div>
+      <div class="status-dot" id="statusDot"></div>
+      <span class="status-label" id="statusLabel">Connecting...</span>
+    </div>
+    <div style="display: flex; align-items: center; gap: 8px;">
+      <span class="badge" id="pendingBadge" style="display: none;">0 pending</span>
+      <button class="sound-toggle" id="soundToggle" title="Toggle notification sound">🔔</button>
+      <button class="history-toggle" id="historyBtn" style="position: static;">📋 History</button>
+    </div>
+  </div>
+
+  <!-- Terminal -->
+  <div class="terminal-container">
+    <div id="terminal"></div>
+  </div>
+
+  <!-- Permission Overlay -->
+  <div class="permission-overlay" id="permissionOverlay"></div>
+
+  <!-- History Panel -->
+  <div class="history-panel" id="historyPanel">
+    <div class="history-header">
+      <span>Permission History</span>
+      <button class="history-toggle" id="historyClose" style="position: static;">✕</button>
+    </div>
+    <div class="history-list" id="historyList">
+      <div class="empty-state">
+        <div class="icon">📋</div>
+        <div class="title">No history yet</div>
+        <div class="subtitle">Permission requests will appear here</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@xterm/xterm@5.5.0/lib/xterm.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@xterm/addon-fit@0.10.0/lib/addon-fit.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@xterm/addon-web-links@0.11.0/lib/addon-web-links.min.js"></script>
+  <script>
+    // --- State ---
+    let ws = null;
+    let reconnectTimer = null;
+    let pendingRequests = new Map();
+    let historyItems = [];
+    let soundEnabled = localStorage.getItem('sound') !== 'false';
+    let notificationPermission = 'default';
+
+    // Request notification permission
+    if ('Notification' in window) {
+      Notification.requestPermission().then(p => notificationPermission = p);
+    }
+
+    // --- Terminal Setup ---
+    const term = new Terminal({
+      theme: {
+        background: '#0d1117',
+        foreground: '#e6edf3',
+        cursor: '#58a6ff',
+        cursorAccent: '#0d1117',
+        selectionBackground: '#264f78',
+        black: '#484f58',
+        red: '#f85149',
+        green: '#3fb950',
+        yellow: '#d29922',
+        blue: '#58a6ff',
+        magenta: '#bc8cff',
+        cyan: '#39d353',
+        white: '#e6edf3',
+        brightBlack: '#6e7681',
+        brightRed: '#ffa198',
+        brightGreen: '#56d364',
+        brightYellow: '#e3b341',
+        brightBlue: '#79c0ff',
+        brightMagenta: '#d2a8ff',
+        brightCyan: '#56d364',
+        brightWhite: '#f0f6fc',
+      },
+      fontFamily: "'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace",
+      fontSize: 14,
+      lineHeight: 1.3,
+      cursorBlink: true,
+      cursorStyle: 'bar',
+      scrollback: 10000,
+      allowProposedApi: true,
+    });
+
+    const fitAddon = new FitAddon.FitAddon();
+    const webLinksAddon = new WebLinksAddon.WebLinksAddon();
+    term.loadAddon(fitAddon);
+    term.loadAddon(webLinksAddon);
+    term.open(document.getElementById('terminal'));
+    fitAddon.fit();
+
+    // Handle terminal input -> send to server
+    term.onData(data => {
+      if (ws?.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({ type: 'input', data }));
+      }
+    });
+
+    // Handle terminal resize
+    const resizeObserver = new ResizeObserver(() => {
+      fitAddon.fit();
+      if (ws?.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({ type: 'resize', cols: term.cols, rows: term.rows }));
+      }
+    });
+    resizeObserver.observe(document.getElementById('terminal'));
+
+    // --- WebSocket ---
+    function getWsUrl() {
+      const proto = location.protocol === 'https:' ? 'wss' : 'ws';
+      const params = new URLSearchParams(location.search);
+      const token = params.get('token');
+      let url = `${proto}://${location.host}`;
+      if (token) url += `?token=${token}`;
+      return url;
+    }
+
+    function connect() {
+      if (ws) {
+        try { ws.close(); } catch(e) {}
+      }
+
+      ws = new WebSocket(getWsUrl());
+
+      ws.onopen = () => {
+        updateStatus('connected');
+        showToast('Connected to server');
+        if (reconnectTimer) {
+          clearInterval(reconnectTimer);
+          reconnectTimer = null;
+        }
+        // Send terminal size
+        ws.send(JSON.stringify({ type: 'resize', cols: term.cols, rows: term.rows }));
+      };
+
+      ws.onmessage = (event) => {
+        const msg = JSON.parse(event.data);
+        handleServerMessage(msg);
+      };
+
+      ws.onclose = () => {
+        updateStatus('disconnected');
+        if (!reconnectTimer) {
+          reconnectTimer = setInterval(connect, 3000);
+        }
+      };
+
+      ws.onerror = () => {};
+    }
+
+    function handleServerMessage(msg) {
+      switch (msg.type) {
+        case 'output':
+          term.write(msg.data);
+          break;
+
+        case 'session-info':
+          updateStatus(msg.active ? 'session-active' : 'connected');
+          break;
+
+        case 'permission':
+          showPermissionRequest(msg.request);
+          break;
+
+        case 'permission-resolved':
+          resolvePermissionRequest(msg.id, msg.resolvedBy);
+          break;
+
+        case 'history':
+          if (msg.permissions) {
+            historyItems = msg.permissions;
+            renderHistory();
+          }
+          break;
+
+        case 'exit':
+          updateStatus('connected');
+          term.writeln(`\r\n\x1b[33m--- Session ended (code: ${msg.code}) ---\x1b[0m`);
+          break;
+
+        case 'error':
+          showToast(`Error: ${msg.message}`, 5000);
+          break;
+      }
+    }
+
+    // --- Permission UI ---
+    function showPermissionRequest(request) {
+      pendingRequests.set(request.id, request);
+      updatePendingBadge();
+      renderPermissionCards();
+      playNotificationSound();
+      sendBrowserNotification(request);
+    }
+
+    function resolvePermissionRequest(id, resolvedBy) {
+      const card = document.querySelector(`[data-request-id="${id}"]`);
+      if (card) {
+        card.classList.add('resolving');
+        setTimeout(() => card.remove(), 300);
+      }
+      pendingRequests.delete(id);
+      updatePendingBadge();
+
+      // Update history
+      const item = historyItems.find(h => h.id === id);
+      if (item) item.status = resolvedBy || 'resolved';
+      renderHistory();
+    }
+
+    function renderPermissionCards() {
+      const overlay = document.getElementById('permissionOverlay');
+      overlay.innerHTML = '';
+
+      for (const [id, req] of pendingRequests) {
+        const card = document.createElement('div');
+        card.className = 'permission-card';
+        card.dataset.requestId = id;
+
+        const timeAgo = getTimeAgo(req.timestamp);
+
+        card.innerHTML = `
+          <div class="permission-header">
+            <span class="permission-icon">⚠️</span>
+            <span class="permission-title">Permission Required</span>
+            <span class="permission-time">${timeAgo}</span>
+          </div>
+          <div class="permission-body">
+            <div class="permission-tool">Tool: <strong>${escapeHtml(req.tool)}</strong></div>
+            ${req.details ? `<div class="permission-details">${escapeHtml(req.details)}</div>` : ''}
+            ${req.context ? `<div class="permission-details" style="max-height: 80px; font-size: 11px;">${escapeHtml(req.context)}</div>` : ''}
+          </div>
+          <div class="permission-actions">
+            <button class="btn btn-deny" onclick="denyRequest('${id}')">✕ Deny</button>
+            <button class="btn btn-always" onclick="alwaysRequest('${id}')">∞ Always</button>
+            <button class="btn btn-approve" onclick="approveRequest('${id}')">✓ Allow</button>
+          </div>
+        `;
+
+        overlay.appendChild(card);
+      }
+    }
+
+    function approveRequest(id) {
+      ws?.send(JSON.stringify({ type: 'approve', id }));
+      animateAndRemove(id, 'approved (web)');
+    }
+
+    function denyRequest(id) {
+      ws?.send(JSON.stringify({ type: 'deny', id }));
+      animateAndRemove(id, 'denied (web)');
+    }
+
+    function alwaysRequest(id) {
+      ws?.send(JSON.stringify({ type: 'always', id }));
+      animateAndRemove(id, 'always (web)');
+    }
+
+    function animateAndRemove(id, status) {
+      const card = document.querySelector(`[data-request-id="${id}"]`);
+      if (card) {
+        card.classList.add('resolving');
+        setTimeout(() => card.remove(), 300);
+      }
+      // Update local state
+      const req = pendingRequests.get(id);
+      if (req) {
+        req.status = status;
+        historyItems.push(req);
+      }
+      pendingRequests.delete(id);
+      updatePendingBadge();
+      renderHistory();
+    }
+
+    // --- History ---
+    function renderHistory() {
+      const list = document.getElementById('historyList');
+      if (historyItems.length === 0) {
+        list.innerHTML = `
+          <div class="empty-state">
+            <div class="icon">📋</div>
+            <div class="title">No history yet</div>
+            <div class="subtitle">Permission requests will appear here</div>
+          </div>`;
+        return;
+      }
+
+      list.innerHTML = [...historyItems].reverse().map(item => {
+        const statusClass = (item.status || '').includes('approved') ? 'approved'
+          : (item.status || '').includes('denied') ? 'denied'
+          : (item.status || '').includes('always') ? 'always'
+          : 'pending';
+
+        return `
+          <div class="history-item">
+            <div class="time">${getTimeAgo(item.timestamp)}</div>
+            <div class="tool-name">${escapeHtml(item.tool)}</div>
+            ${item.details ? `<div style="font-size: 11px; color: var(--text-muted); margin: 4px 0; word-break: break-all;">${escapeHtml(item.details)}</div>` : ''}
+            <span class="status ${statusClass}">${escapeHtml(item.status || 'pending')}</span>
+          </div>`;
+      }).join('');
+    }
+
+    // --- UI Helpers ---
+    function updateStatus(state) {
+      const dot = document.getElementById('statusDot');
+      const label = document.getElementById('statusLabel');
+      dot.className = 'status-dot ' + state;
+      const labels = {
+        'connected': 'Connected',
+        'session-active': 'Session Active',
+        'disconnected': 'Disconnected',
+      };
+      label.textContent = labels[state] || state;
+    }
+
+    function updatePendingBadge() {
+      const badge = document.getElementById('pendingBadge');
+      const count = pendingRequests.size;
+      if (count > 0) {
+        badge.textContent = `${count} pending`;
+        badge.classList.add('pending');
+        badge.style.display = '';
+        document.title = `(${count}) Claude Approve`;
+      } else {
+        badge.style.display = 'none';
+        badge.classList.remove('pending');
+        document.title = 'Claude Approve';
+      }
+    }
+
+    function showToast(message, duration = 2500) {
+      const toast = document.getElementById('toast');
+      toast.textContent = message;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), duration);
+    }
+
+    function playNotificationSound() {
+      if (!soundEnabled) return;
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.frequency.setValueAtTime(800, ctx.currentTime);
+        osc.frequency.setValueAtTime(1000, ctx.currentTime + 0.1);
+        gain.gain.setValueAtTime(0.15, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+        osc.start(ctx.currentTime);
+        osc.stop(ctx.currentTime + 0.3);
+      } catch (e) {}
+    }
+
+    function sendBrowserNotification(request) {
+      if (notificationPermission !== 'granted') return;
+      if (document.hasFocus()) return;
+      try {
+        const n = new Notification('Claude Approve - Permission Required', {
+          body: `Tool: ${request.tool}\n${request.details || ''}`,
+          icon: '🔐',
+          tag: request.id,
+          requireInteraction: true,
+        });
+        n.onclick = () => { window.focus(); n.close(); };
+      } catch (e) {}
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text || '';
+      return div.innerHTML;
+    }
+
+    function getTimeAgo(timestamp) {
+      if (!timestamp) return '';
+      const diff = Date.now() - new Date(timestamp).getTime();
+      if (diff < 5000) return 'just now';
+      if (diff < 60000) return `${Math.floor(diff / 1000)}s ago`;
+      if (diff < 3600000) return `${Math.floor(diff / 60000)}m ago`;
+      return `${Math.floor(diff / 3600000)}h ago`;
+    }
+
+    // --- History Panel Toggle ---
+    document.getElementById('historyBtn').addEventListener('click', () => {
+      document.getElementById('historyPanel').classList.toggle('open');
+    });
+    document.getElementById('historyClose').addEventListener('click', () => {
+      document.getElementById('historyPanel').classList.remove('open');
+    });
+
+    // --- Sound Toggle ---
+    const soundBtn = document.getElementById('soundToggle');
+    soundBtn.textContent = soundEnabled ? '🔔' : '🔕';
+    soundBtn.addEventListener('click', () => {
+      soundEnabled = !soundEnabled;
+      localStorage.setItem('sound', soundEnabled);
+      soundBtn.textContent = soundEnabled ? '🔔' : '🔕';
+      showToast(soundEnabled ? 'Sound enabled' : 'Sound disabled');
+    });
+
+    // --- Keyboard Shortcuts ---
+    document.addEventListener('keydown', (e) => {
+      // Escape closes history panel
+      if (e.key === 'Escape') {
+        document.getElementById('historyPanel').classList.remove('open');
+      }
+    });
+
+    // --- Start ---
+    connect();
+    term.focus();
+
+    // Keep time displays updated
+    setInterval(() => {
+      document.querySelectorAll('.permission-time').forEach(el => {
+        // Re-render permission cards to update time
+      });
+    }, 10000);
+  </script>
+</body>
+</html>

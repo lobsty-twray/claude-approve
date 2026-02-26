@@ -1,0 +1,11 @@
+#!/usr/bin/env node
+
+/**
+ * Claude Approve CLI
+ * 
+ * Usage:
+ *   claude-approve [options] [-- claude-args...]
+ *   claude-approve --help
+ */
+
+require('../server.js');

@@ -1,0 +1,22 @@
+{
+  "name": "claude-approve",
+  "version": "1.0.0",
+  "description": "Web companion for Claude Code tool approval — approve or deny tool requests from your browser",
+  "main": "server.js",
+  "bin": {
+    "claude-approve": "./bin/claude-approve"
+  },
+  "scripts": {
+    "start": "node server.js",
+    "test": "node test/test.js",
+    "mock": "node server.js --command 'bash test/mock-claude.sh'"
+  },
+  "keywords": ["claude", "claude-code", "approval", "tool-permissions", "web-ui"],
+  "author": "lobsty-twray",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.21.0",
+    "node-pty": "^1.0.0",
+    "ws": "^8.18.0"
+  }
+}

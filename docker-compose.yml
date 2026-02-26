@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  claude-approve:
+    build: .
+    container_name: claude-approve
+    ports:
+      - "${PORT:-3456}:3456"
+    environment:
+      - PORT=3456
+      - HOST=0.0.0.0
+      # For real Claude CLI usage, set these:
+      # - CLAUDE_COMMAND=claude
+      # - AUTH_TOKEN=your-secret-token
+      # For demo/testing with mock:
+      - CLAUDE_COMMAND=bash test/mock-claude.sh
+    volumes:
+      # Mount your home directory for Claude CLI access
+      # - ~/.claude:/root/.claude:ro
+      # Mount your project directory
+      # - ./:/workspace
+      []
+    restart: unless-stopped
+    # Required for PTY support
+    tty: true
+    stdin_open: true

@@ -1,0 +1,25 @@
+# Development
+test/
+.git/
+.github/
+*.bak
+*.bak2
+
+# Docker
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Misc
+node_modules/
+*.log

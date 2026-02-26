@@ -1,7 +1,7 @@
 {
   "name": "claude-approve",
-  "version": "1.0.0",
-  "description": "Web companion for Claude Code tool approval — approve or deny tool requests from your browser",
+  "version": "1.1.0",
+  "description": "Web companion for Claude Code — approve or deny tool permission requests from your browser, phone, or any device",
   "main": "server.js",
   "bin": {
     "claude-approve": "./bin/claude-approve"
@@ -11,12 +11,49 @@
     "test": "node test/test.js",
     "mock": "node server.js --command 'bash test/mock-claude.sh'"
   },
-  "keywords": ["claude", "claude-code", "approval", "tool-permissions", "web-ui"],
-  "author": "lobsty-twray",
+  "keywords": [
+    "claude",
+    "claude-code",
+    "anthropic",
+    "approval",
+    "tool-permissions",
+    "web-ui",
+    "developer-tools",
+    "cli",
+    "terminal",
+    "pty",
+    "code-review",
+    "ai-safety",
+    "ai-tools"
+  ],
+  "author": {
+    "name": "Ray",
+    "url": "https://github.com/lobsty-twray"
+  },
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lobsty-twray/claude-approve.git"
+  },
+  "bugs": {
+    "url": "https://github.com/lobsty-twray/claude-approve/issues"
+  },
+  "homepage": "https://github.com/lobsty-twray/claude-approve#readme",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "os": ["darwin", "linux"],
   "dependencies": {
     "express": "^4.21.0",
     "node-pty": "^1.0.0",
     "ws": "^8.18.0"
-  }
+  },
+  "files": [
+    "bin/",
+    "lib/",
+    "public/",
+    "server.js",
+    "README.md",
+    "LICENSE"
+  ]
 }

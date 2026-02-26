@@ -23,6 +23,7 @@ try {
 }
 
 // --- Configuration ---
+let ptyActive = false;
 const config = {
   port: parseInt(process.env.PORT || '3456'),
   host: process.env.HOST || '0.0.0.0',
@@ -143,7 +144,7 @@ app.get('/api/session', (req, res) => {
 const detector = new PermissionDetector({
   idleThresholdMs: config.idleThresholdMs,
   onPermissionDetected: (request) => {
-    console.log(`\n🔔 Permission request detected: ${request.tool}`);
+    if (!ptyActive) console.log(`\n🔔 Permission request detected: ${request.tool}`);
     permissionHistory.push({ ...request, status: 'pending' });
     broadcast({ type: 'permission', request });
   },
@@ -169,7 +170,7 @@ wss.on('connection', (ws, req) => {
   }
 
   clients.add(ws);
-  console.log(`🌐 Web client connected (${clients.size} total)`);
+  if (!ptyActive) console.log(`🌐 Web client connected (${clients.size} total)`);
 
   // Send current state
   ws.send(JSON.stringify({
@@ -203,7 +204,7 @@ wss.on('connection', (ws, req) => {
 
   ws.on('close', () => {
     clients.delete(ws);
-    console.log(`🌐 Web client disconnected (${clients.size} remaining)`);
+    if (!ptyActive) console.log(`🌐 Web client disconnected (${clients.size} remaining)`);
   });
 });
 
@@ -227,7 +228,7 @@ function handleClientMessage(msg, ws) {
 
     case 'approve':
       if (ptyProcess && sessionActive && detector.getPendingRequest()) {
-        console.log('✅ Approved from web UI');
+        if (!ptyActive) console.log('✅ Approved from web UI');
         ptyProcess.write('y');
         detector.resolveCurrentRequest('web-approve');
         updateHistoryStatus(msg.id, 'approved (web)');
@@ -236,7 +237,7 @@ function handleClientMessage(msg, ws) {
 
     case 'deny':
       if (ptyProcess && sessionActive && detector.getPendingRequest()) {
-        console.log('❌ Denied from web UI');
+        if (!ptyActive) console.log('❌ Denied from web UI');
         ptyProcess.write('n');
         detector.resolveCurrentRequest('web-deny');
         updateHistoryStatus(msg.id, 'denied (web)');
@@ -245,7 +246,7 @@ function handleClientMessage(msg, ws) {
 
     case 'always':
       if (ptyProcess && sessionActive && detector.getPendingRequest()) {
-        console.log('✅ Always allowed from web UI');
+        if (!ptyActive) console.log('✅ Always allowed from web UI');
         ptyProcess.write('a');
         detector.resolveCurrentRequest('web-always');
         updateHistoryStatus(msg.id, 'always (web)');
@@ -294,8 +295,8 @@ function startSession() {
   try {
     ptyProcess = pty.spawn(cmd, args, {
       name: 'xterm-256color',
-      cols: 120,
-      rows: 40,
+      cols: (process.stdin.isTTY && process.stdout.columns) ? process.stdout.columns : 120,
+      rows: (process.stdin.isTTY && process.stdout.rows) ? process.stdout.rows : 40,
       cwd: config.cwd,
       env: { ...process.env, TERM: 'xterm-256color' },
     });
@@ -306,6 +307,22 @@ function startSession() {
   }
 
   sessionActive = true;
+
+  if (process.stdin.isTTY) {
+    console.log('');
+    console.log('  \x1b[32m✓ Claude Code is running\x1b[0m');
+    console.log('');
+    console.log('  \x1b[36m📺 Terminal view:\x1b[0m  http://localhost:' + config.port);
+    console.log('  \x1b[36m🔔 Permissions:\x1b[0m   Approve/deny in web UI or type y/n/a here');
+    console.log('  \x1b[36m⌨️  Input:\x1b[0m         Your keystrokes are forwarded to Claude');
+    console.log('  \x1b[36m🛑 Quit:\x1b[0m          Press q after Claude exits, or close terminal');
+    console.log('');
+    console.log('  \x1b[90m─────────────────────────────────────────\x1b[0m');
+    console.log('  \x1b[90mClaude\'s output is in the web UI above.\x1b[0m');
+    console.log('  \x1b[90mYou can still type here — input goes to Claude.\x1b[0m');
+    console.log('');
+  }
+  ptyActive = true;
   sessionStartTime = new Date().toISOString();
 
   broadcast({
@@ -316,29 +333,49 @@ function startSession() {
     cwd: config.cwd,
   });
 
-  // Forward PTY output to terminal and web clients
+  // Forward PTY output to web clients (web UI has the terminal view via xterm.js)
   ptyProcess.onData((data) => {
-    // Write to host terminal (so terminal still works)
-    process.stdout.write(data);
-    // Feed to permission detector
     detector.feed(data);
-    // Send to web clients
     broadcast({ type: 'output', data });
   });
 
   ptyProcess.onExit(({ exitCode, signal }) => {
     console.log(`\n📋 Session ended (code: ${exitCode}, signal: ${signal})`);
     sessionActive = false;
+    ptyActive = false;
     detector.reset();
     broadcast({ type: 'exit', code: exitCode, signal });
+  });
+
+  // Handle SIGINT - forward to PTY instead of killing server
+  process.on('SIGINT', () => {
+    if (ptyProcess && sessionActive) {
+      ptyProcess.write('\x03'); // Send Ctrl+C to Claude
+    } else {
+      shutdown();
+    }
   });
 
   // Forward host terminal input to PTY
   if (process.stdin.isTTY) {
     process.stdin.setRawMode(true);
+    // Sync host terminal size to PTY
+    process.stdout.on('resize', () => {
+      if (ptyProcess) {
+        try {
+          ptyProcess.resize(process.stdout.columns, process.stdout.rows);
+        } catch (e) {}
+      }
+    });
+
     process.stdin.resume();
     process.stdin.on('data', (data) => {
-      if (ptyProcess && sessionActive) {
+      if (!sessionActive) {
+          // No active session, Ctrl+C or 'q' quits
+          const ch = data.toString();
+          if (ch === '\x03' || ch === 'q') { shutdown(); return; }
+        }
+        if (ptyProcess && sessionActive) {
         // Check if user typed y/n/a while there's a pending request
         const char = data.toString();
         if (detector.getPendingRequest() && /^[yna]$/i.test(char)) {

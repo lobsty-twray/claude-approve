@@ -679,7 +679,8 @@
       sessionMap.forEach((entry, id) => {
         const s = entry.info;
         const pending = entry.pending.size;
-        const statusClass = pending > 0 ? 'pending' : s.status === 'active' ? 'active' : 'exited';
+        const waiting = s.waitingForInput && pending === 0;
+        const statusClass = pending > 0 ? 'pending' : waiting ? 'pending' : s.status === 'active' ? 'active' : 'exited';
 
         const el = document.createElement('div');
         el.className = `session-item${id === activeSessionId ? ' active' : ''}`;
@@ -692,7 +693,7 @@
               </div>
               <div class="session-item-meta">
                 <span>${s.status}</span>
-                ${pending > 0 ? `<span class="session-needs-input">⚡ Action needed</span>` : ''}
+                ${pending > 0 ? `<span class="session-needs-input">⚡ Permission needed</span>` : waiting ? `<span class="session-needs-input">💬 Waiting for input</span>` : ''}
               </div>
             </div>
             <div style="display:flex; flex-direction:column; align-items:center; gap:4px;">

@@ -103,6 +103,10 @@ function createSession(opts = {}) {
       if (entry) entry.status = `resolved (${resolved.resolvedBy})`;
       broadcast({ type: 'permission-resolved', id: resolved.id, resolvedBy: resolved.resolvedBy, sessionId: id });
     },
+    onWaitingForInput: (waiting) => {
+      session.waitingForInput = waiting;
+      broadcast({ type: 'session-waiting', sessionId: id, waiting });
+    },
   });
 
   const session = {
@@ -204,6 +208,7 @@ function serializeSession(s) {
     startTime: s.startTime,
     exitCode: s.exitCode,
     pendingCount: s.detector.getPendingRequest() ? 1 : 0,
+    waitingForInput: s.waitingForInput || false,
     permissionHistory: s.permissionHistory.slice(-50),
   };
 }

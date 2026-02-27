@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * Claude Approve v2.0.0 - Multi-Session Web companion for Claude Code
+ * Claude Approve v2.5.0 - Multi-Session Web companion for Claude Code
  * 
  * Supports multiple simultaneous Claude Code sessions, each with its own
  * PTY, terminal view, and permission queue.
@@ -44,7 +44,7 @@ for (let i = 0; i < cliArgs.length; i++) {
         config.host = cliArgs[++i];
       } else {
         console.log(`
-Claude Approve v2.0.0 — Multi-session web companion for Claude Code
+Claude Approve v2.5.0 — Multi-session web companion for Claude Code
 
 Usage:
   claude-approve [options] [-- claude-args...]
@@ -428,7 +428,7 @@ server.listen(config.port, config.host, () => {
   console.log(`
 ╭──────────────────────────────────────────────────╮
 │                                                  │
-│   🔐 Claude Approve v2.0.0                      │
+│   🔐 Claude Approve v2.5.0                      │
 │                                                  │
 │   Web UI: http://localhost:${String(config.port).padEnd(5)}                │
 │   Command: ${(config.command + ' ' + config.args.join(' ')).trim().slice(0, 36).padEnd(36)} │

@@ -1,10 +1,10 @@
 {
-  "name": "claude-approve",
-  "version": "2.5.1",
-  "description": "Web companion for Claude Code — approve or deny tool permission requests from your browser, phone, or any device",
+  "name": "claude-hub",
+  "version": "3.0.0",
+  "description": "Multi-session web dashboard for Claude Code — approve or deny tool permission requests from your browser, phone, or any device",
   "main": "server.js",
   "bin": {
-    "claude-approve": "./bin/claude-approve"
+    "claude-hub": "./bin/claude-hub"
   },
   "scripts": {
     "start": "node server.js",

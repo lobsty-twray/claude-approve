@@ -1,15 +1,15 @@
-# 🔐 Claude Approve
+# 🔐 Claude Hub
 
 **Web companion for Claude Code tool approval** — approve or deny tool permission requests from your browser, phone, or any device. Works alongside your terminal, not instead of it.
 
-![Version](https://img.shields.io/badge/version-1.0.0-blue)
+![Version](https://img.shields.io/badge/version-3.0.0-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
 ## What is this?
 
 When you use [Claude Code](https://docs.anthropic.com/en/docs/claude-code) (Anthropic's CLI for Claude), it asks for permission before running tools like `Bash`, `Read`, `Write`, `Edit`, etc. Normally you approve/deny these in the terminal.
 
-**Claude Approve** wraps your Claude Code session and adds a web UI — so you can approve tool requests from your phone while you're away from your desk, or from a second monitor.
+**Claude Hub** wraps your Claude Code session and adds a web UI — so you can approve tool requests from your phone while you're away from your desk, or from a second monitor.
 
 ### Key Features
 
@@ -37,8 +37,8 @@ When you use [Claude Code](https://docs.anthropic.com/en/docs/claude-code) (Anth
 
 ```bash
 # Clone the repo
-git clone https://github.com/lobsty-twray/claude-approve.git
-cd claude-approve
+git clone https://github.com/lobsty-twray/claude-hub.git
+cd claude-hub
 
 # Install dependencies
 npm install
@@ -73,9 +73,9 @@ Then open **http://localhost:3456** in your browser (or `http://localhost:3456?t
 ```bash
 npm install -g .
 # Now you can run from anywhere:
-claude-approve
-claude-approve --port 8080
-claude-approve -- --model sonnet
+claude-hub
+claude-hub --port 8080
+claude-hub -- --model sonnet
 ```
 
 ## Docker
@@ -84,10 +84,10 @@ claude-approve -- --model sonnet
 
 ```bash
 # Build
-docker build -t claude-approve .
+docker build -t claude-hub .
 
 # Run with mock (for testing)
-docker run -it -p 3456:3456 claude-approve
+docker run -it -p 3456:3456 claude-hub
 
 # Run with real Claude CLI (mount your config)
 docker run -it -p 3456:3456 \
@@ -96,7 +96,7 @@ docker run -it -p 3456:3456 \
   -e CLAUDE_COMMAND=claude \
   -e CLAUDE_CWD=/workspace \
   -e AUTH_TOKEN=my-secret-token \
-  claude-approve
+  claude-hub
 ```
 
 ### Docker Compose
@@ -144,7 +144,7 @@ docker compose down
 
 ```
 ┌─────────────┐     ┌──────────────────┐     ┌─────────────┐
-│  Terminal    │◄───►│  Claude Approve  │◄───►│  Web Browser│
+│  Terminal    │◄───►│  Claude Hub  │◄───►│  Web Browser│
 │  (stdin/out) │     │  (PTY + Server)  │     │  (WebSocket)│
 └─────────────┘     │                  │     └─────────────┘
                     │  ┌────────────┐  │
@@ -159,7 +159,7 @@ docker compose down
                     └──────────────────┘
 ```
 
-1. **Claude Approve** launches Claude Code inside a pseudo-terminal (PTY)
+1. **Claude Hub** launches Claude Code inside a pseudo-terminal (PTY)
 2. All terminal output flows to both your **local terminal** and the **web UI**
 3. The **Permission Detector** watches for approval prompts in the output
 4. When detected, a card appears in the web UI with **Approve / Deny / Always** buttons
@@ -180,7 +180,7 @@ It uses a combination of regex pattern matching and idle detection (waits for ou
 
 ### Recommended `.claude/settings.json`
 
-To get the most out of Claude Approve, configure Claude Code to ask for permission on sensitive tools:
+To get the most out of Claude Hub, configure Claude Code to ask for permission on sensitive tools:
 
 ```json
 {

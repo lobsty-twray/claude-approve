@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Claude Approve</title>
+  <title>Claude Hub</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@xterm/xterm@5.5.0/css/xterm.min.css">
   <style>
     :root {
@@ -147,6 +147,12 @@
     .session-pending-badge {
       font-size: 10px; background: var(--accent-yellow-bg); color: var(--accent-yellow);
       padding: 1px 6px; border-radius: 8px; font-weight: 600;
+    }
+    .session-needs-input {
+      font-size: 9px; background: var(--accent-yellow); color: #000;
+      padding: 2px 6px; border-radius: 4px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.5px;
+      animation: pulse-badge 1.5s infinite;
     }
     .session-close-btn {
       background: none; border: none;
@@ -344,7 +350,7 @@
   <div class="top-bar">
     <div class="top-left">
       <button class="menu-btn sidebar-toggle" id="sidebarToggle">☰</button>
-      <div class="logo">🔐 <span class="full">Claude Approve</span><span class="short" style="display:none;">CA</span></div>
+      <div class="logo">🔐 <span class="full">Claude Hub</span><span class="short" style="display:none;">CA</span></div>
     </div>
     <div class="top-right">
       <span class="badge" id="globalBadge" style="display:none;">0</span>
@@ -686,7 +692,7 @@
               </div>
               <div class="session-item-meta">
                 <span>${s.status}</span>
-                ${pending > 0 ? `<span class="session-pending-badge">⚠ ${pending}</span>` : ''}
+                ${pending > 0 ? `<span class="session-needs-input">⚡ Action needed</span>` : ''}
               </div>
             </div>
             <div style="display:flex; flex-direction:column; align-items:center; gap:4px;">
@@ -739,10 +745,10 @@
       if (total > 0) {
         badge.textContent = total;
         badge.style.display = '';
-        document.title = `(${total}) Claude Approve`;
+        document.title = `(${total}) Claude Hub`;
       } else {
         badge.style.display = 'none';
-        document.title = 'Claude Approve';
+        document.title = 'Claude Hub';
       }
     }
 
@@ -900,7 +906,7 @@
       if (Notification.permission !== 'granted' || document.hasFocus()) return;
       const entry = sessionMap.get(req.sessionId);
       try {
-        const n = new Notification(`Claude Approve - ${entry?.info?.name || 'Session'}`, {
+        const n = new Notification(`Claude Hub - ${entry?.info?.name || 'Session'}`, {
           body: `Tool: ${req.tool}\n${req.details || ''}`,
           tag: req.id, requireInteraction: true,
         });

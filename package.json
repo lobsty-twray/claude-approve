@@ -1,6 +1,6 @@
 {
   "name": "claude-approve",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Web companion for Claude Code — approve or deny tool permission requests from your browser, phone, or any device",
   "main": "server.js",
   "bin": {
@@ -9,7 +9,8 @@
   "scripts": {
     "start": "node server.js",
     "test": "node test/test.js",
-    "mock": "node server.js --command 'bash test/mock-claude.sh'"
+    "mock": "node server.js --command 'bash test/mock-claude.sh'",
+    "postinstall": "node -e \"const os=require('os');if(os.platform()==='darwin'&&os.arch()==='arm64'){console.log('\\n⚠️  macOS ARM detected — rebuilding node-pty from source...');require('child_process').execSync('npm rebuild node-pty --build-from-source',{stdio:'inherit'})}\""
   },
   "keywords": [
     "claude",
@@ -42,7 +43,10 @@
   "engines": {
     "node": ">=18.0.0"
   },
-  "os": ["darwin", "linux"],
+  "os": [
+    "darwin",
+    "linux"
+  ],
   "dependencies": {
     "express": "^4.21.0",
     "node-pty": "^1.0.0",

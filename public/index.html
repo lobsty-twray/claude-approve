@@ -343,6 +343,59 @@
     ::-webkit-scrollbar { width: 6px; }
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+    /* === MOBILE VIRTUAL KEYS === */
+    .mobile-keys {
+      display: none;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 40;
+      background: var(--bg-secondary);
+      border-top: 1px solid var(--border);
+      padding: 6px 8px;
+      gap: 6px;
+      justify-content: center;
+      align-items: center;
+    }
+    .mobile-keys .key-group {
+      display: flex;
+      gap: 4px;
+      align-items: center;
+    }
+    .mobile-keys .key-btn {
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
+      color: var(--text-primary);
+      font-size: 14px;
+      font-weight: 600;
+      min-width: 44px;
+      min-height: 44px;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      transition: background 0.1s;
+    }
+    .mobile-keys .key-btn:active {
+      background: var(--accent-blue);
+      color: #fff;
+    }
+    .mobile-keys .key-btn.key-wide {
+      min-width: 56px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    @media (max-width: 768px) {
+      .mobile-keys { display: flex; }
+      .content-area { padding-bottom: 56px; }
+    }
   </style>
 </head>
 <body>
@@ -408,6 +461,24 @@
         <button class="modal-btn modal-btn-cancel" id="modalCancel">Cancel</button>
         <button class="modal-btn modal-btn-create" id="modalCreate">Create</button>
       </div>
+    </div>
+  </div>
+
+
+  <!-- Mobile Virtual Keys -->
+  <div class="mobile-keys" id="mobileKeys">
+    <div class="key-group">
+      <button class="key-btn key-wide" data-key="\x1b">Esc</button>
+      <button class="key-btn key-wide" data-key="\t">Tab</button>
+    </div>
+    <div class="key-group">
+      <button class="key-btn" data-key="\x1b[A">↑</button>
+      <button class="key-btn" data-key="\x1b[B">↓</button>
+      <button class="key-btn" data-key="\x1b[D">←</button>
+      <button class="key-btn" data-key="\x1b[C">→</button>
+    </div>
+    <div class="key-group">
+      <button class="key-btn key-wide" data-key="\x03">Ctrl+C</button>
     </div>
   </div>
 
@@ -917,6 +988,35 @@
 
     // === Start ===
     connect();
+
+    // === Mobile Virtual Keys ===
+    document.querySelectorAll('.mobile-keys .key-btn').forEach(btn => {
+      btn.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        const key = btn.dataset.key
+          .replace(/\\x1b/g, '\x1b')
+          .replace(/\\t/g, '\t')
+          .replace(/\\x03/g, '\x03');
+        if (activeSessionId) {
+          const token = new URLSearchParams(location.search).get('token');
+          const headers = { 'Content-Type': 'application/json' };
+          if (token) headers['Authorization'] = 'Bearer ' + token;
+          fetch('/api/sessions/' + activeSessionId + '/input', {
+            method: 'POST', headers, body: JSON.stringify({ data: key })
+          });
+        }
+      });
+      // Also handle click for non-touch
+      btn.addEventListener('click', (e) => {
+        const key = btn.dataset.key
+          .replace(/\\x1b/g, '\x1b')
+          .replace(/\\t/g, '\t')
+          .replace(/\\x03/g, '\x03');
+        if (activeSessionId) {
+          send({ type: 'input', data: key, sessionId: activeSessionId });
+        }
+      });
+    });
   </script>
 </body>
 </html>

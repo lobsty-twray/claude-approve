@@ -23,8 +23,9 @@
       --accent-blue: #58a6ff;
       --accent-blue-bg: #1a2a3d;
       --accent-purple: #bc8cff;
-      --shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+      --shadow: 0 8px 32px rgba(0,0,0,0.4);
       --radius: 12px;
+      --sidebar-width: 260px;
     }
 
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -34,93 +35,156 @@
       color: var(--text-primary);
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif;
       height: 100vh;
+      height: 100dvh;
       display: flex;
       flex-direction: column;
       overflow: hidden;
     }
 
-    /* Status Bar */
-    .status-bar {
+    /* === TOP BAR === */
+    .top-bar {
       display: flex;
       align-items: center;
       justify-content: space-between;
       padding: 8px 16px;
       background: var(--bg-secondary);
       border-bottom: 1px solid var(--border);
-      min-height: 44px;
+      min-height: 48px;
       flex-shrink: 0;
+      z-index: 20;
     }
+    .top-left { display: flex; align-items: center; gap: 12px; }
+    .logo { font-weight: 700; font-size: 15px; display: flex; align-items: center; gap: 6px; }
+    .top-right { display: flex; align-items: center; gap: 8px; }
 
-    .status-left {
-      display: flex;
-      align-items: center;
-      gap: 12px;
+    .menu-btn {
+      background: none; border: none; color: var(--text-secondary); font-size: 22px;
+      cursor: pointer; padding: 4px 8px; border-radius: 6px; min-width: 44px; min-height: 44px;
+      display: flex; align-items: center; justify-content: center;
     }
-
-    .status-dot {
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      background: var(--text-muted);
-      transition: background 0.3s;
-    }
-    .status-dot.connected { background: var(--accent-green); box-shadow: 0 0 8px var(--accent-green); }
-    .status-dot.session-active { background: var(--accent-blue); box-shadow: 0 0 8px var(--accent-blue); }
-    .status-dot.disconnected { background: var(--accent-red); box-shadow: 0 0 8px var(--accent-red); }
-
-    .status-label {
-      font-size: 13px;
-      color: var(--text-secondary);
-    }
-
-    .logo {
-      font-weight: 700;
-      font-size: 15px;
-      color: var(--text-primary);
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
+    .menu-btn:hover { background: var(--bg-tertiary); }
 
     .badge {
-      font-size: 11px;
-      padding: 2px 8px;
-      border-radius: 10px;
-      font-weight: 600;
-      background: var(--accent-blue-bg);
-      color: var(--accent-blue);
-    }
-    .badge.pending {
-      background: var(--accent-yellow-bg);
-      color: var(--accent-yellow);
+      font-size: 11px; padding: 2px 8px; border-radius: 10px; font-weight: 600;
+      background: var(--accent-yellow-bg); color: var(--accent-yellow);
       animation: pulse-badge 1.5s infinite;
     }
+    @keyframes pulse-badge { 0%,100% { opacity:1; } 50% { opacity:0.6; } }
 
-    @keyframes pulse-badge {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.6; }
+    .icon-btn {
+      background: none; border: none; color: var(--text-muted); cursor: pointer;
+      font-size: 16px; padding: 4px; min-width: 44px; min-height: 44px;
+      display: flex; align-items: center; justify-content: center; border-radius: 6px;
+    }
+    .icon-btn:hover { color: var(--text-secondary); background: var(--bg-tertiary); }
+
+    /* === MAIN LAYOUT === */
+    .main-layout {
+      flex: 1;
+      display: flex;
+      overflow: hidden;
+      position: relative;
     }
 
-    /* Terminal Container */
-    .terminal-container {
+    /* === SIDEBAR === */
+    .sidebar {
+      width: var(--sidebar-width);
+      background: var(--bg-secondary);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      z-index: 15;
+      transition: transform 0.25s ease;
+    }
+
+    .sidebar-header {
+      padding: 12px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .sidebar-title { font-size: 12px; text-transform: uppercase; color: var(--text-muted); font-weight: 600; letter-spacing: 0.5px; }
+
+    .new-session-btn {
+      background: var(--accent-blue-bg); color: var(--accent-blue); border: 1px solid var(--accent-blue);
+      border-radius: 8px; padding: 8px 14px; font-size: 13px; font-weight: 600;
+      cursor: pointer; min-height: 44px; display: flex; align-items: center; gap: 6px;
+      transition: all 0.15s;
+    }
+    .new-session-btn:hover { background: var(--accent-blue); color: #000; }
+    .new-session-btn:active { transform: scale(0.97); }
+
+    .session-list {
+      flex: 1; overflow-y: auto; padding: 8px;
+    }
+
+    .session-item {
+      padding: 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-bottom: 4px;
+      border: 1px solid transparent;
+      transition: all 0.15s;
+      position: relative;
+      min-height: 44px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .session-item:hover { background: var(--bg-tertiary); }
+    .session-item.active { background: var(--bg-tertiary); border-color: var(--accent-blue); }
+    .session-item-top { display: flex; align-items: center; justify-content: space-between; }
+    .session-item-name { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 160px; }
+    .session-item-status {
+      width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+    }
+    .session-item-status.active { background: var(--accent-green); box-shadow: 0 0 6px var(--accent-green); }
+    .session-item-status.pending { background: var(--accent-yellow); box-shadow: 0 0 6px var(--accent-yellow); animation: pulse-badge 1.5s infinite; }
+    .session-item-status.exited { background: var(--text-muted); }
+    .session-item-meta { font-size: 11px; color: var(--text-muted); margin-top: 2px; display: flex; gap: 8px; align-items: center; }
+    .session-pending-badge {
+      font-size: 10px; background: var(--accent-yellow-bg); color: var(--accent-yellow);
+      padding: 1px 6px; border-radius: 8px; font-weight: 600;
+    }
+    .session-close-btn {
+      position: absolute; top: 6px; right: 6px; background: none; border: none;
+      color: var(--text-muted); cursor: pointer; font-size: 12px; padding: 4px;
+      border-radius: 4px; opacity: 0; transition: opacity 0.15s;
+      min-width: 28px; min-height: 28px; display: flex; align-items: center; justify-content: center;
+    }
+    .session-item:hover .session-close-btn { opacity: 1; }
+    .session-close-btn:hover { background: var(--accent-red-bg); color: var(--accent-red); }
+
+    /* === CONTENT AREA === */
+    .content-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      min-width: 0;
+    }
+
+    .session-view {
+      flex: 1;
+      display: none;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .session-view.visible { display: flex; }
+
+    .terminal-wrap {
       flex: 1;
       position: relative;
       overflow: hidden;
     }
+    .terminal-wrap .xterm { height: 100%; padding: 4px; }
 
-    #terminal {
-      height: 100%;
-      padding: 4px;
-    }
-
-    /* Permission Overlay */
+    /* === PERMISSION OVERLAY === */
     .permission-overlay {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      z-index: 100;
-      pointer-events: none;
+      position: fixed; bottom: 0; left: 0; right: 0; z-index: 100; pointer-events: none;
+      display: flex; flex-direction: column; align-items: center; gap: 8px; padding-bottom: 0;
     }
 
     .permission-card {
@@ -129,319 +193,214 @@
       border: 1px solid var(--border);
       border-radius: var(--radius) var(--radius) 0 0;
       box-shadow: var(--shadow);
-      padding: 0;
-      margin: 0 auto;
       max-width: 600px;
+      width: 100%;
       animation: slide-up 0.3s ease-out;
       overflow: hidden;
     }
-
-    @keyframes slide-up {
-      from { transform: translateY(100%); opacity: 0; }
-      to { transform: translateY(0); opacity: 1; }
-    }
-
-    @keyframes slide-down {
-      from { transform: translateY(0); opacity: 1; }
-      to { transform: translateY(100%); opacity: 0; }
-    }
-
-    .permission-card.resolving {
-      animation: slide-down 0.3s ease-in forwards;
-    }
+    @keyframes slide-up { from { transform: translateY(100%); opacity:0; } to { transform: translateY(0); opacity:1; } }
+    .permission-card.resolving { animation: slide-down 0.3s ease-in forwards; }
+    @keyframes slide-down { from { transform: translateY(0); opacity:1; } to { transform: translateY(100%); opacity:0; } }
 
     .permission-header {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 14px 16px;
-      background: var(--accent-yellow-bg);
-      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: 10px;
+      padding: 14px 16px; background: var(--accent-yellow-bg); border-bottom: 1px solid var(--border);
     }
-
-    .permission-icon {
-      font-size: 20px;
-      flex-shrink: 0;
+    .permission-icon { font-size: 20px; flex-shrink: 0; }
+    .permission-title { font-weight: 600; font-size: 14px; color: var(--accent-yellow); }
+    .permission-session-tag {
+      font-size: 11px; background: var(--accent-blue-bg); color: var(--accent-blue);
+      padding: 2px 8px; border-radius: 6px; margin-left: auto; flex-shrink: 0;
     }
-
-    .permission-title {
-      font-weight: 600;
-      font-size: 14px;
-      color: var(--accent-yellow);
-    }
-
-    .permission-time {
-      margin-left: auto;
-      font-size: 11px;
-      color: var(--text-muted);
-      flex-shrink: 0;
-    }
-
-    .permission-body {
-      padding: 14px 16px;
-    }
-
-    .permission-tool {
-      font-size: 13px;
-      color: var(--text-secondary);
-      margin-bottom: 8px;
-    }
-
-    .permission-tool strong {
-      color: var(--text-primary);
-      font-family: 'SF Mono', 'Menlo', 'Consolas', monospace;
-    }
-
+    .permission-body { padding: 14px 16px; }
+    .permission-tool { font-size: 13px; color: var(--text-secondary); margin-bottom: 8px; }
+    .permission-tool strong { color: var(--text-primary); font-family: 'SF Mono','Menlo','Consolas',monospace; }
     .permission-details {
-      background: var(--bg-primary);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 10px 12px;
-      font-family: 'SF Mono', 'Menlo', 'Consolas', monospace;
-      font-size: 12px;
-      color: var(--text-secondary);
-      max-height: 120px;
-      overflow-y: auto;
-      white-space: pre-wrap;
-      word-break: break-all;
+      background: var(--bg-primary); border: 1px solid var(--border); border-radius: 8px;
+      padding: 10px 12px; font-family: 'SF Mono','Menlo','Consolas',monospace;
+      font-size: 12px; color: var(--text-secondary);
+      max-height: 120px; overflow-y: auto; white-space: pre-wrap; word-break: break-all;
       margin-bottom: 14px;
     }
-
-    .permission-actions {
-      display: flex;
-      gap: 8px;
-      padding: 0 16px 14px;
-    }
-
+    .permission-actions { display: flex; gap: 8px; padding: 0 16px 14px; }
     .btn {
-      flex: 1;
-      padding: 12px 16px;
-      border: none;
-      border-radius: 8px;
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.15s;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      min-height: 44px;
-      -webkit-tap-highlight-color: transparent;
+      flex: 1; padding: 12px 16px; border: none; border-radius: 8px;
+      font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.15s;
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+      min-height: 44px; -webkit-tap-highlight-color: transparent;
     }
-
     .btn:active { transform: scale(0.97); }
-
-    .btn-approve {
-      background: var(--accent-green);
-      color: #000;
-    }
+    .btn-approve { background: var(--accent-green); color: #000; }
     .btn-approve:hover { background: #4ac35a; }
-
-    .btn-deny {
-      background: var(--accent-red);
-      color: #fff;
-    }
+    .btn-deny { background: var(--accent-red); color: #fff; }
     .btn-deny:hover { background: #f96961; }
-
-    .btn-always {
-      background: var(--bg-tertiary);
-      color: var(--text-primary);
-      border: 1px solid var(--border);
-      flex: 0.7;
-    }
+    .btn-always { background: var(--bg-tertiary); color: var(--text-primary); border: 1px solid var(--border); flex: 0.7; }
     .btn-always:hover { background: var(--border); }
 
-    /* History Panel */
-    .history-toggle {
-      position: fixed;
-      top: 52px;
-      right: 8px;
-      z-index: 50;
-      background: var(--bg-secondary);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 6px 10px;
-      color: var(--text-secondary);
-      font-size: 12px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 4px;
+    /* === EMPTY STATE === */
+    .empty-state {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      height: 100%; color: var(--text-muted); text-align: center; padding: 20px;
     }
-    .history-toggle:hover { background: var(--bg-tertiary); }
+    .empty-state .icon { font-size: 48px; margin-bottom: 12px; }
+    .empty-state .title { font-size: 16px; margin-bottom: 4px; color: var(--text-secondary); }
 
-    .history-panel {
-      position: fixed;
-      top: 44px;
-      right: 0;
-      bottom: 0;
-      width: min(360px, 85vw);
-      background: var(--bg-secondary);
-      border-left: 1px solid var(--border);
-      z-index: 90;
-      transform: translateX(100%);
-      transition: transform 0.25s ease;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
+    /* === GLOBAL PERMISSIONS PANEL === */
+    .global-perms-panel {
+      position: fixed; top: 48px; right: 0; bottom: 0;
+      width: min(380px, 90vw); background: var(--bg-secondary);
+      border-left: 1px solid var(--border); z-index: 90;
+      transform: translateX(100%); transition: transform 0.25s ease;
+      display: flex; flex-direction: column;
     }
-    .history-panel.open { transform: translateX(0); }
-
-    .history-header {
-      padding: 14px 16px;
-      border-bottom: 1px solid var(--border);
-      font-weight: 600;
-      font-size: 14px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+    .global-perms-panel.open { transform: translateX(0); }
+    .panel-header {
+      padding: 14px 16px; border-bottom: 1px solid var(--border);
+      font-weight: 600; font-size: 14px; display: flex; justify-content: space-between; align-items: center;
     }
-
-    .history-list {
-      flex: 1;
-      overflow-y: auto;
-      padding: 8px;
-    }
-
+    .panel-list { flex: 1; overflow-y: auto; padding: 8px; }
     .history-item {
-      padding: 10px 12px;
-      border-radius: 8px;
-      margin-bottom: 6px;
-      font-size: 12px;
-      background: var(--bg-primary);
-      border: 1px solid var(--border);
+      padding: 10px 12px; border-radius: 8px; margin-bottom: 6px;
+      font-size: 12px; background: var(--bg-primary); border: 1px solid var(--border);
     }
-
-    .history-item .tool-name {
-      font-weight: 600;
-      color: var(--text-primary);
-      margin-bottom: 4px;
+    .history-item .tool-name { font-weight: 600; color: var(--text-primary); margin-bottom: 4px; }
+    .history-item .session-tag {
+      font-size: 10px; background: var(--accent-blue-bg); color: var(--accent-blue);
+      padding: 1px 6px; border-radius: 4px; margin-left: 6px;
     }
-
-    .history-item .status {
-      font-size: 11px;
-      padding: 2px 6px;
-      border-radius: 4px;
-      display: inline-block;
-    }
+    .history-item .status { font-size: 11px; padding: 2px 6px; border-radius: 4px; display: inline-block; }
     .history-item .status.approved { background: var(--accent-green-bg); color: var(--accent-green); }
     .history-item .status.denied { background: var(--accent-red-bg); color: var(--accent-red); }
     .history-item .status.pending { background: var(--accent-yellow-bg); color: var(--accent-yellow); }
     .history-item .status.always { background: var(--accent-blue-bg); color: var(--accent-blue); }
+    .history-item .time { font-size: 11px; color: var(--text-muted); float: right; }
 
-    .history-item .time {
-      font-size: 11px;
-      color: var(--text-muted);
-      float: right;
+    /* === NEW SESSION MODAL === */
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+      z-index: 200; display: none; align-items: center; justify-content: center; padding: 16px;
     }
-
-    /* Empty State */
-    .empty-state {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100%;
-      color: var(--text-muted);
-      text-align: center;
-      padding: 20px;
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: var(--bg-secondary); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 24px; width: 100%; max-width: 420px; box-shadow: var(--shadow);
     }
-    .empty-state .icon { font-size: 48px; margin-bottom: 12px; }
-    .empty-state .title { font-size: 16px; margin-bottom: 4px; color: var(--text-secondary); }
-    .empty-state .subtitle { font-size: 13px; }
+    .modal h3 { margin-bottom: 16px; font-size: 16px; }
+    .modal label { font-size: 12px; color: var(--text-secondary); display: block; margin-bottom: 4px; margin-top: 12px; }
+    .modal input {
+      width: 100%; padding: 10px 12px; background: var(--bg-primary); border: 1px solid var(--border);
+      border-radius: 8px; color: var(--text-primary); font-size: 14px; min-height: 44px;
+    }
+    .modal input:focus { outline: none; border-color: var(--accent-blue); }
+    .modal-actions { display: flex; gap: 8px; margin-top: 20px; }
+    .modal-btn {
+      flex: 1; padding: 12px; border: none; border-radius: 8px; font-size: 14px; font-weight: 600;
+      cursor: pointer; min-height: 44px; transition: all 0.15s;
+    }
+    .modal-btn:active { transform: scale(0.97); }
+    .modal-btn-cancel { background: var(--bg-tertiary); color: var(--text-primary); }
+    .modal-btn-create { background: var(--accent-blue); color: #000; }
+    .modal-btn-create:hover { background: #79c0ff; }
 
-    /* Notification Toast */
+    /* === TOAST === */
     .toast {
-      position: fixed;
-      top: 56px;
-      left: 50%;
-      transform: translateX(-50%) translateY(-20px);
-      background: var(--bg-tertiary);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 8px 16px;
-      font-size: 13px;
-      color: var(--text-primary);
-      z-index: 200;
-      opacity: 0;
-      transition: all 0.3s;
-      pointer-events: none;
-      white-space: nowrap;
+      position: fixed; top: 56px; left: 50%; transform: translateX(-50%) translateY(-20px);
+      background: var(--bg-tertiary); border: 1px solid var(--border); border-radius: 8px;
+      padding: 8px 16px; font-size: 13px; z-index: 300; opacity: 0; transition: all 0.3s;
+      pointer-events: none; white-space: nowrap;
     }
-    .toast.show {
-      opacity: 1;
-      transform: translateX(-50%) translateY(0);
-    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
-    /* Notification Sound */
-    .sound-toggle {
-      background: none;
-      border: none;
-      color: var(--text-muted);
-      cursor: pointer;
-      font-size: 16px;
-      padding: 4px;
-    }
-    .sound-toggle:hover { color: var(--text-secondary); }
-
-    /* Mobile Adjustments */
+    /* === MOBILE === */
     @media (max-width: 768px) {
-      .permission-card {
-        border-radius: var(--radius) var(--radius) 0 0;
-        max-width: 100%;
+      .sidebar {
+        position: absolute; top: 0; left: 0; bottom: 0;
+        transform: translateX(-100%); z-index: 50;
+        box-shadow: var(--shadow);
       }
-
-      .status-bar { padding: 6px 12px; }
-      .logo span { display: none; }
-
+      .sidebar.open { transform: translateX(0); }
+      .sidebar-backdrop {
+        position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+        z-index: 45; display: none;
+      }
+      .sidebar-backdrop.open { display: block; }
+      .logo span.full { display: none; }
+      .permission-card { max-width: 100%; }
       .btn { padding: 14px 12px; }
+    }
+    @media (min-width: 769px) {
+      .menu-btn.sidebar-toggle { display: none; }
+      .sidebar-backdrop { display: none !important; }
     }
 
     /* Scrollbar */
     ::-webkit-scrollbar { width: 6px; }
     ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb {
-      background: var(--border);
-      border-radius: 3px;
-    }
-    ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
   </style>
 </head>
 <body>
-  <!-- Status Bar -->
-  <div class="status-bar">
-    <div class="status-left">
-      <div class="logo">🔐 <span>Claude Approve</span></div>
-      <div class="status-dot" id="statusDot"></div>
-      <span class="status-label" id="statusLabel">Connecting...</span>
+  <!-- Top Bar -->
+  <div class="top-bar">
+    <div class="top-left">
+      <button class="menu-btn sidebar-toggle" id="sidebarToggle">☰</button>
+      <div class="logo">🔐 <span class="full">Claude Approve</span><span class="short" style="display:none;">CA</span></div>
     </div>
-    <div style="display: flex; align-items: center; gap: 8px;">
-      <span class="badge" id="pendingBadge" style="display: none;">0 pending</span>
-      <button class="sound-toggle" id="soundToggle" title="Toggle notification sound">🔔</button>
-      <button class="history-toggle" id="historyBtn" style="position: static;">📋 History</button>
+    <div class="top-right">
+      <span class="badge" id="globalBadge" style="display:none;">0</span>
+      <button class="icon-btn" id="soundToggle" title="Toggle sound">🔔</button>
+      <button class="icon-btn" id="historyBtn" title="Permission history">📋</button>
     </div>
   </div>
 
-  <!-- Terminal -->
-  <div class="terminal-container">
-    <div id="terminal"></div>
+  <!-- Sidebar Backdrop (mobile) -->
+  <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+  <!-- Main Layout -->
+  <div class="main-layout">
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <span class="sidebar-title">Sessions</span>
+        <button class="new-session-btn" id="newSessionBtn">+ New</button>
+      </div>
+      <div class="session-list" id="sessionList"></div>
+    </div>
+
+    <!-- Content Area -->
+    <div class="content-area" id="contentArea">
+      <div class="empty-state" id="emptyState">
+        <div class="icon">🔐</div>
+        <div class="title">No session selected</div>
+      </div>
+    </div>
   </div>
 
   <!-- Permission Overlay -->
   <div class="permission-overlay" id="permissionOverlay"></div>
 
-  <!-- History Panel -->
-  <div class="history-panel" id="historyPanel">
-    <div class="history-header">
+  <!-- Global Permissions Panel -->
+  <div class="global-perms-panel" id="globalPermsPanel">
+    <div class="panel-header">
       <span>Permission History</span>
-      <button class="history-toggle" id="historyClose" style="position: static;">✕</button>
+      <button class="icon-btn" id="closePermsPanel">✕</button>
     </div>
-    <div class="history-list" id="historyList">
-      <div class="empty-state">
-        <div class="icon">📋</div>
-        <div class="title">No history yet</div>
-        <div class="subtitle">Permission requests will appear here</div>
+    <div class="panel-list" id="globalPermsList"></div>
+  </div>
+
+  <!-- New Session Modal -->
+  <div class="modal-overlay" id="newSessionModal">
+    <div class="modal">
+      <h3>➕ New Session</h3>
+      <label>Session Name</label>
+      <input id="modalName" placeholder="e.g. Frontend, API, Tests..." autofocus>
+      <label>Working Directory</label>
+      <input id="modalCwd" placeholder="(default: server cwd)">
+      <label>Command</label>
+      <input id="modalCommand" placeholder="(default: claude)">
+      <div class="modal-actions">
+        <button class="modal-btn modal-btn-cancel" id="modalCancel">Cancel</button>
+        <button class="modal-btn modal-btn-create" id="modalCreate">Create</button>
       </div>
     </div>
   </div>
@@ -453,390 +412,498 @@
   <script src="https://cdn.jsdelivr.net/npm/@xterm/addon-fit@0.10.0/lib/addon-fit.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@xterm/addon-web-links@0.11.0/lib/addon-web-links.min.js"></script>
   <script>
-    // --- State ---
+    // === State ===
     let ws = null;
     let reconnectTimer = null;
-    let pendingRequests = new Map();
-    let historyItems = [];
     let soundEnabled = localStorage.getItem('sound') !== 'false';
-    let notificationPermission = 'default';
+    let activeSessionId = null;
+    const sessionMap = new Map(); // id -> { info, term, fitAddon, pending }
 
-    // Request notification permission
-    if ('Notification' in window) {
-      Notification.requestPermission().then(p => notificationPermission = p);
-    }
+    if ('Notification' in window) Notification.requestPermission();
 
-    // --- Terminal Setup ---
-    const term = new Terminal({
-      theme: {
-        background: '#0d1117',
-        foreground: '#e6edf3',
-        cursor: '#58a6ff',
-        cursorAccent: '#0d1117',
-        selectionBackground: '#264f78',
-        black: '#484f58',
-        red: '#f85149',
-        green: '#3fb950',
-        yellow: '#d29922',
-        blue: '#58a6ff',
-        magenta: '#bc8cff',
-        cyan: '#39d353',
-        white: '#e6edf3',
-        brightBlack: '#6e7681',
-        brightRed: '#ffa198',
-        brightGreen: '#56d364',
-        brightYellow: '#e3b341',
-        brightBlue: '#79c0ff',
-        brightMagenta: '#d2a8ff',
-        brightCyan: '#56d364',
-        brightWhite: '#f0f6fc',
-      },
-      fontFamily: "'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace",
-      fontSize: 14,
-      lineHeight: 1.3,
-      cursorBlink: true,
-      cursorStyle: 'bar',
-      scrollback: 10000,
-      allowProposedApi: true,
-    });
-
-    const fitAddon = new FitAddon.FitAddon();
-    const webLinksAddon = new WebLinksAddon.WebLinksAddon();
-    term.loadAddon(fitAddon);
-    term.loadAddon(webLinksAddon);
-    term.open(document.getElementById('terminal'));
-    fitAddon.fit();
-
-    // Handle terminal input -> send to server
-    term.onData(data => {
-      if (ws?.readyState === WebSocket.OPEN) {
-        ws.send(JSON.stringify({ type: 'input', data }));
-      }
-    });
-
-    // Handle terminal resize
-    const resizeObserver = new ResizeObserver(() => {
-      fitAddon.fit();
-      if (ws?.readyState === WebSocket.OPEN) {
-        ws.send(JSON.stringify({ type: 'resize', cols: term.cols, rows: term.rows }));
-      }
-    });
-    resizeObserver.observe(document.getElementById('terminal'));
-
-    // --- WebSocket ---
+    // === WebSocket ===
     function getWsUrl() {
       const proto = location.protocol === 'https:' ? 'wss' : 'ws';
-      const params = new URLSearchParams(location.search);
-      const token = params.get('token');
+      const token = new URLSearchParams(location.search).get('token');
       let url = `${proto}://${location.host}`;
       if (token) url += `?token=${token}`;
       return url;
     }
 
     function connect() {
-      if (ws) {
-        try { ws.close(); } catch(e) {}
-      }
-
+      if (ws) try { ws.close(); } catch(e) {}
       ws = new WebSocket(getWsUrl());
 
       ws.onopen = () => {
-        updateStatus('connected');
-        showToast('Connected to server');
-        if (reconnectTimer) {
-          clearInterval(reconnectTimer);
-          reconnectTimer = null;
-        }
-        // Send terminal size
-        ws.send(JSON.stringify({ type: 'resize', cols: term.cols, rows: term.rows }));
+        showToast('Connected');
+        if (reconnectTimer) { clearInterval(reconnectTimer); reconnectTimer = null; }
       };
 
-      ws.onmessage = (event) => {
-        const msg = JSON.parse(event.data);
-        handleServerMessage(msg);
+      ws.onmessage = (e) => {
+        const msg = JSON.parse(e.data);
+        handleMessage(msg);
       };
 
       ws.onclose = () => {
-        updateStatus('disconnected');
-        if (!reconnectTimer) {
-          reconnectTimer = setInterval(connect, 3000);
-        }
+        if (!reconnectTimer) reconnectTimer = setInterval(connect, 3000);
       };
-
       ws.onerror = () => {};
     }
 
-    function handleServerMessage(msg) {
+    function send(msg) {
+      if (ws?.readyState === WebSocket.OPEN) ws.send(JSON.stringify(msg));
+    }
+
+    // === Message Handler ===
+    function handleMessage(msg) {
       switch (msg.type) {
-        case 'output':
-          term.write(msg.data);
+        case 'sessions-list':
+          msg.sessions.forEach(s => upsertSession(s));
+          // Auto-select first if nothing selected
+          if (!activeSessionId && msg.sessions.length > 0) selectSession(msg.sessions[0].id);
           break;
 
-        case 'session-info':
-          updateStatus(msg.active ? 'session-active' : 'connected');
+        case 'session-update':
+          upsertSession(msg.session);
           break;
 
-        case 'permission':
-          showPermissionRequest(msg.request);
-          break;
-
-        case 'permission-resolved':
-          resolvePermissionRequest(msg.id, msg.resolvedBy);
-          break;
-
-        case 'history':
-          if (msg.permissions) {
-            historyItems = msg.permissions;
-            renderHistory();
+        case 'session-exit':
+          const se = sessionMap.get(msg.sessionId);
+          if (se) {
+            se.info.status = 'exited';
+            se.info.exitCode = msg.code;
+            se.term.writeln(`\r\n\x1b[33m--- Session ended (code: ${msg.code}) ---\x1b[0m`);
+            renderSessionList();
           }
           break;
 
-        case 'exit':
-          updateStatus('connected');
-          term.writeln(`\r\n\x1b[33m--- Session ended (code: ${msg.code}) ---\x1b[0m`);
+        case 'session-removed':
+          destroySession(msg.sessionId);
           break;
 
-        case 'error':
-          showToast(`Error: ${msg.message}`, 5000);
+        case 'output':
+          const so = sessionMap.get(msg.sessionId);
+          if (so) so.term.write(msg.data);
+          break;
+
+        case 'permission':
+          handlePermission(msg.request);
+          break;
+
+        case 'permission-resolved':
+          resolvePermission(msg.id, msg.resolvedBy, msg.sessionId);
           break;
       }
     }
 
-    // --- Permission UI ---
-    function showPermissionRequest(request) {
-      pendingRequests.set(request.id, request);
-      updatePendingBadge();
-      renderPermissionCards();
-      playNotificationSound();
-      sendBrowserNotification(request);
+    // === Session Management ===
+    function upsertSession(info) {
+      let entry = sessionMap.get(info.id);
+      if (!entry) {
+        // Create terminal
+        const term = new Terminal({
+          theme: {
+            background: '#0d1117', foreground: '#e6edf3', cursor: '#58a6ff',
+            cursorAccent: '#0d1117', selectionBackground: '#264f78',
+            black: '#484f58', red: '#f85149', green: '#3fb950', yellow: '#d29922',
+            blue: '#58a6ff', magenta: '#bc8cff', cyan: '#39d353', white: '#e6edf3',
+            brightBlack: '#6e7681', brightRed: '#ffa198', brightGreen: '#56d364',
+            brightYellow: '#e3b341', brightBlue: '#79c0ff', brightMagenta: '#d2a8ff',
+            brightCyan: '#56d364', brightWhite: '#f0f6fc',
+          },
+          fontFamily: "'SF Mono', Menlo, Consolas, monospace",
+          fontSize: 14, lineHeight: 1.3, cursorBlink: true, cursorStyle: 'bar',
+          scrollback: 10000, allowProposedApi: true,
+        });
+
+        const fitAddon = new FitAddon.FitAddon();
+        term.loadAddon(fitAddon);
+        term.loadAddon(new WebLinksAddon.WebLinksAddon());
+
+        // Create DOM
+        const view = document.createElement('div');
+        view.className = 'session-view';
+        view.id = `view-${info.id}`;
+        const termWrap = document.createElement('div');
+        termWrap.className = 'terminal-wrap';
+        const termEl = document.createElement('div');
+        termEl.style.height = '100%';
+        termEl.style.padding = '4px';
+        termWrap.appendChild(termEl);
+        view.appendChild(termWrap);
+        document.getElementById('contentArea').appendChild(view);
+
+        term.open(termEl);
+
+        // Terminal input
+        term.onData(data => {
+          send({ type: 'input', data, sessionId: info.id });
+        });
+
+        // Resize observer
+        const ro = new ResizeObserver(() => {
+          fitAddon.fit();
+          send({ type: 'resize', cols: term.cols, rows: term.rows, sessionId: info.id });
+        });
+        ro.observe(termWrap);
+
+        entry = { info, term, fitAddon, view, termWrap, resizeObserver: ro, pending: new Map() };
+        sessionMap.set(info.id, entry);
+      } else {
+        entry.info = { ...entry.info, ...info };
+      }
+
+      // Sync history into pending
+      if (info.permissionHistory) {
+        info.permissionHistory.forEach(h => {
+          if (h.status === 'pending' && !entry.pending.has(h.id)) {
+            entry.pending.set(h.id, h);
+          }
+        });
+      }
+
+      renderSessionList();
     }
 
-    function resolvePermissionRequest(id, resolvedBy) {
+    function destroySession(id) {
+      const entry = sessionMap.get(id);
+      if (entry) {
+        entry.term.dispose();
+        entry.resizeObserver.disconnect();
+        entry.view.remove();
+        sessionMap.delete(id);
+      }
+      if (activeSessionId === id) {
+        activeSessionId = null;
+        const first = sessionMap.keys().next().value;
+        if (first) selectSession(first);
+        else document.getElementById('emptyState').style.display = '';
+      }
+      renderSessionList();
+      renderPermissionCards();
+    }
+
+    function selectSession(id) {
+      activeSessionId = id;
+      document.getElementById('emptyState').style.display = 'none';
+
+      sessionMap.forEach((entry, sid) => {
+        if (sid === id) {
+          entry.view.classList.add('visible');
+          setTimeout(() => { entry.fitAddon.fit(); entry.term.focus(); }, 10);
+        } else {
+          entry.view.classList.remove('visible');
+        }
+      });
+
+      renderSessionList();
+      renderPermissionCards();
+
+      // Close sidebar on mobile
+      document.getElementById('sidebar').classList.remove('open');
+      document.getElementById('sidebarBackdrop').classList.remove('open');
+    }
+
+    // === Permission Handling ===
+    function handlePermission(request) {
+      const entry = sessionMap.get(request.sessionId);
+      if (entry) {
+        entry.pending.set(request.id, request);
+        entry.info.pendingCount = entry.pending.size;
+        renderSessionList();
+      }
+      renderPermissionCards();
+      playSound();
+      sendNotification(request);
+    }
+
+    function resolvePermission(id, resolvedBy, sessionId) {
+      const entry = sessionMap.get(sessionId);
+      if (entry) {
+        entry.pending.delete(id);
+        entry.info.pendingCount = entry.pending.size;
+        // Update history
+        const h = (entry.info.permissionHistory || []).find(x => x.id === id);
+        if (h) h.status = resolvedBy || 'resolved';
+        renderSessionList();
+      }
+
       const card = document.querySelector(`[data-request-id="${id}"]`);
       if (card) {
         card.classList.add('resolving');
-        setTimeout(() => card.remove(), 300);
+        setTimeout(() => { card.remove(); }, 300);
       }
-      pendingRequests.delete(id);
-      updatePendingBadge();
+      updateGlobalBadge();
+      renderGlobalHistory();
+    }
 
-      // Update history
-      const item = historyItems.find(h => h.id === id);
-      if (item) item.status = resolvedBy || 'resolved';
-      renderHistory();
+    function approveRequest(id, sessionId) {
+      send({ type: 'approve', id, sessionId });
+      localResolve(id, sessionId, 'approved (web)');
+    }
+    function denyRequest(id, sessionId) {
+      send({ type: 'deny', id, sessionId });
+      localResolve(id, sessionId, 'denied (web)');
+    }
+    function alwaysRequest(id, sessionId) {
+      send({ type: 'always', id, sessionId });
+      localResolve(id, sessionId, 'always (web)');
+    }
+
+    function localResolve(id, sessionId, status) {
+      const entry = sessionMap.get(sessionId);
+      if (entry) {
+        const req = entry.pending.get(id);
+        if (req) req.status = status;
+        entry.pending.delete(id);
+        entry.info.pendingCount = entry.pending.size;
+        renderSessionList();
+      }
+      const card = document.querySelector(`[data-request-id="${id}"]`);
+      if (card) { card.classList.add('resolving'); setTimeout(() => card.remove(), 300); }
+      updateGlobalBadge();
+      renderGlobalHistory();
+    }
+
+    // === Rendering ===
+    function renderSessionList() {
+      const list = document.getElementById('sessionList');
+      list.innerHTML = '';
+
+      sessionMap.forEach((entry, id) => {
+        const s = entry.info;
+        const pending = entry.pending.size;
+        const statusClass = pending > 0 ? 'pending' : s.status === 'active' ? 'active' : 'exited';
+
+        const el = document.createElement('div');
+        el.className = `session-item${id === activeSessionId ? ' active' : ''}`;
+        el.onclick = () => selectSession(id);
+        el.innerHTML = `
+          <div class="session-item-top">
+            <span class="session-item-name">${esc(s.name || id)}</span>
+            <span class="session-item-status ${statusClass}"></span>
+          </div>
+          <div class="session-item-meta">
+            <span>${s.status}</span>
+            ${pending > 0 ? `<span class="session-pending-badge">⚠ ${pending}</span>` : ''}
+          </div>
+          <button class="session-close-btn" onclick="event.stopPropagation(); deleteSession('${id}')">✕</button>
+        `;
+        list.appendChild(el);
+      });
+
+      updateGlobalBadge();
     }
 
     function renderPermissionCards() {
       const overlay = document.getElementById('permissionOverlay');
       overlay.innerHTML = '';
 
-      for (const [id, req] of pendingRequests) {
-        const card = document.createElement('div');
-        card.className = 'permission-card';
-        card.dataset.requestId = id;
-
-        const timeAgo = getTimeAgo(req.timestamp);
-
-        card.innerHTML = `
-          <div class="permission-header">
-            <span class="permission-icon">⚠️</span>
-            <span class="permission-title">Permission Required</span>
-            <span class="permission-time">${timeAgo}</span>
-          </div>
-          <div class="permission-body">
-            <div class="permission-tool">Tool: <strong>${escapeHtml(req.tool)}</strong></div>
-            ${req.details ? `<div class="permission-details">${escapeHtml(req.details)}</div>` : ''}
-            ${req.context ? `<div class="permission-details" style="max-height: 80px; font-size: 11px;">${escapeHtml(req.context)}</div>` : ''}
-          </div>
-          <div class="permission-actions">
-            <button class="btn btn-deny" onclick="denyRequest('${id}')">✕ Deny</button>
-            <button class="btn btn-always" onclick="alwaysRequest('${id}')">∞ Always</button>
-            <button class="btn btn-approve" onclick="approveRequest('${id}')">✓ Allow</button>
-          </div>
-        `;
-
-        overlay.appendChild(card);
-      }
+      // Show all pending permissions across all sessions
+      sessionMap.forEach((entry, sessionId) => {
+        entry.pending.forEach((req, reqId) => {
+          const card = document.createElement('div');
+          card.className = 'permission-card';
+          card.dataset.requestId = reqId;
+          card.innerHTML = `
+            <div class="permission-header">
+              <span class="permission-icon">⚠️</span>
+              <span class="permission-title">Permission Required</span>
+              <span class="permission-session-tag">${esc(entry.info.name || sessionId)}</span>
+            </div>
+            <div class="permission-body">
+              <div class="permission-tool">Tool: <strong>${esc(req.tool)}</strong></div>
+              ${req.details ? `<div class="permission-details">${esc(req.details)}</div>` : ''}
+            </div>
+            <div class="permission-actions">
+              <button class="btn btn-deny" onclick="denyRequest('${reqId}','${sessionId}')">✕ Deny</button>
+              <button class="btn btn-always" onclick="alwaysRequest('${reqId}','${sessionId}')">∞ Always</button>
+              <button class="btn btn-approve" onclick="approveRequest('${reqId}','${sessionId}')">✓ Allow</button>
+            </div>
+          `;
+          overlay.appendChild(card);
+        });
+      });
     }
 
-    function approveRequest(id) {
-      ws?.send(JSON.stringify({ type: 'approve', id }));
-      animateAndRemove(id, 'approved (web)');
-    }
-
-    function denyRequest(id) {
-      ws?.send(JSON.stringify({ type: 'deny', id }));
-      animateAndRemove(id, 'denied (web)');
-    }
-
-    function alwaysRequest(id) {
-      ws?.send(JSON.stringify({ type: 'always', id }));
-      animateAndRemove(id, 'always (web)');
-    }
-
-    function animateAndRemove(id, status) {
-      const card = document.querySelector(`[data-request-id="${id}"]`);
-      if (card) {
-        card.classList.add('resolving');
-        setTimeout(() => card.remove(), 300);
-      }
-      // Update local state
-      const req = pendingRequests.get(id);
-      if (req) {
-        req.status = status;
-        historyItems.push(req);
-      }
-      pendingRequests.delete(id);
-      updatePendingBadge();
-      renderHistory();
-    }
-
-    // --- History ---
-    function renderHistory() {
-      const list = document.getElementById('historyList');
-      if (historyItems.length === 0) {
-        list.innerHTML = `
-          <div class="empty-state">
-            <div class="icon">📋</div>
-            <div class="title">No history yet</div>
-            <div class="subtitle">Permission requests will appear here</div>
-          </div>`;
-        return;
-      }
-
-      list.innerHTML = [...historyItems].reverse().map(item => {
-        const statusClass = (item.status || '').includes('approved') ? 'approved'
-          : (item.status || '').includes('denied') ? 'denied'
-          : (item.status || '').includes('always') ? 'always'
-          : 'pending';
-
-        return `
-          <div class="history-item">
-            <div class="time">${getTimeAgo(item.timestamp)}</div>
-            <div class="tool-name">${escapeHtml(item.tool)}</div>
-            ${item.details ? `<div style="font-size: 11px; color: var(--text-muted); margin: 4px 0; word-break: break-all;">${escapeHtml(item.details)}</div>` : ''}
-            <span class="status ${statusClass}">${escapeHtml(item.status || 'pending')}</span>
-          </div>`;
-      }).join('');
-    }
-
-    // --- UI Helpers ---
-    function updateStatus(state) {
-      const dot = document.getElementById('statusDot');
-      const label = document.getElementById('statusLabel');
-      dot.className = 'status-dot ' + state;
-      const labels = {
-        'connected': 'Connected',
-        'session-active': 'Session Active',
-        'disconnected': 'Disconnected',
-      };
-      label.textContent = labels[state] || state;
-    }
-
-    function updatePendingBadge() {
-      const badge = document.getElementById('pendingBadge');
-      const count = pendingRequests.size;
-      if (count > 0) {
-        badge.textContent = `${count} pending`;
-        badge.classList.add('pending');
+    function updateGlobalBadge() {
+      let total = 0;
+      sessionMap.forEach(e => total += e.pending.size);
+      const badge = document.getElementById('globalBadge');
+      if (total > 0) {
+        badge.textContent = total;
         badge.style.display = '';
-        document.title = `(${count}) Claude Approve`;
+        document.title = `(${total}) Claude Approve`;
       } else {
         badge.style.display = 'none';
-        badge.classList.remove('pending');
         document.title = 'Claude Approve';
       }
     }
 
-    function showToast(message, duration = 2500) {
-      const toast = document.getElementById('toast');
-      toast.textContent = message;
-      toast.classList.add('show');
-      setTimeout(() => toast.classList.remove('show'), duration);
+    function renderGlobalHistory() {
+      const list = document.getElementById('globalPermsList');
+      const all = [];
+      sessionMap.forEach((entry, id) => {
+        (entry.info.permissionHistory || []).forEach(h => {
+          all.push({ ...h, sessionName: entry.info.name || id });
+        });
+      });
+      all.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+      if (all.length === 0) {
+        list.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-muted);">No history yet</div>';
+        return;
+      }
+
+      list.innerHTML = all.slice(0, 50).map(item => {
+        const sc = (item.status||'').includes('approved') ? 'approved'
+          : (item.status||'').includes('denied') ? 'denied'
+          : (item.status||'').includes('always') ? 'always' : 'pending';
+        return `<div class="history-item">
+          <span class="time">${timeAgo(item.timestamp)}</span>
+          <span class="tool-name">${esc(item.tool)}</span>
+          <span class="session-tag">${esc(item.sessionName)}</span>
+          ${item.details ? `<div style="font-size:11px;color:var(--text-muted);margin:4px 0;word-break:break-all;">${esc(item.details)}</div>` : ''}
+          <span class="status ${sc}">${esc(item.status || 'pending')}</span>
+        </div>`;
+      }).join('');
     }
 
-    function playNotificationSound() {
+    // === API Helpers ===
+    async function createNewSession(name, cwd, command) {
+      const token = new URLSearchParams(location.search).get('token');
+      const headers = { 'Content-Type': 'application/json' };
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+      const body = {};
+      if (name) body.name = name;
+      if (cwd) body.cwd = cwd;
+      if (command) body.command = command;
+      try {
+        const res = await fetch('/api/sessions', { method: 'POST', headers, body: JSON.stringify(body) });
+        const data = await res.json();
+        showToast(`Created ${data.name}`);
+      } catch (e) {
+        showToast('Failed to create session');
+      }
+    }
+
+    async function deleteSession(id) {
+      const entry = sessionMap.get(id);
+      const name = entry?.info?.name || id;
+      if (!confirm(`Remove "${name}"? This will kill the process.`)) return;
+      const token = new URLSearchParams(location.search).get('token');
+      const headers = {};
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+      try {
+        await fetch(`/api/sessions/${id}`, { method: 'DELETE', headers });
+      } catch (e) {}
+    }
+
+    // === UI Events ===
+    document.getElementById('sidebarToggle').onclick = () => {
+      document.getElementById('sidebar').classList.toggle('open');
+      document.getElementById('sidebarBackdrop').classList.toggle('open');
+    };
+    document.getElementById('sidebarBackdrop').onclick = () => {
+      document.getElementById('sidebar').classList.remove('open');
+      document.getElementById('sidebarBackdrop').classList.remove('open');
+    };
+
+    document.getElementById('newSessionBtn').onclick = () => {
+      document.getElementById('newSessionModal').classList.add('open');
+      document.getElementById('modalName').value = '';
+      document.getElementById('modalCwd').value = '';
+      document.getElementById('modalCommand').value = '';
+      setTimeout(() => document.getElementById('modalName').focus(), 100);
+    };
+    document.getElementById('modalCancel').onclick = () => {
+      document.getElementById('newSessionModal').classList.remove('open');
+    };
+    document.getElementById('modalCreate').onclick = () => {
+      const name = document.getElementById('modalName').value.trim();
+      const cwd = document.getElementById('modalCwd').value.trim();
+      const command = document.getElementById('modalCommand').value.trim();
+      createNewSession(name || undefined, cwd || undefined, command || undefined);
+      document.getElementById('newSessionModal').classList.remove('open');
+    };
+    document.getElementById('newSessionModal').onclick = (e) => {
+      if (e.target === document.getElementById('newSessionModal'))
+        document.getElementById('newSessionModal').classList.remove('open');
+    };
+    // Enter key in modal
+    document.getElementById('modalCommand').onkeydown = (e) => {
+      if (e.key === 'Enter') document.getElementById('modalCreate').click();
+    };
+    document.getElementById('modalName').onkeydown = (e) => {
+      if (e.key === 'Enter') document.getElementById('modalCreate').click();
+    };
+
+    document.getElementById('historyBtn').onclick = () => {
+      renderGlobalHistory();
+      document.getElementById('globalPermsPanel').classList.toggle('open');
+    };
+    document.getElementById('closePermsPanel').onclick = () => {
+      document.getElementById('globalPermsPanel').classList.remove('open');
+    };
+
+    const soundBtn = document.getElementById('soundToggle');
+    soundBtn.textContent = soundEnabled ? '🔔' : '🔕';
+    soundBtn.onclick = () => {
+      soundEnabled = !soundEnabled;
+      localStorage.setItem('sound', soundEnabled);
+      soundBtn.textContent = soundEnabled ? '🔔' : '🔕';
+      showToast(soundEnabled ? 'Sound on' : 'Sound off');
+    };
+
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') {
+        document.getElementById('globalPermsPanel').classList.remove('open');
+        document.getElementById('newSessionModal').classList.remove('open');
+      }
+    });
+
+    // === Helpers ===
+    function esc(t) { const d = document.createElement('div'); d.textContent = t||''; return d.innerHTML; }
+    function timeAgo(ts) {
+      if (!ts) return '';
+      const d = Date.now() - new Date(ts).getTime();
+      if (d < 5000) return 'now';
+      if (d < 60000) return `${Math.floor(d/1000)}s`;
+      if (d < 3600000) return `${Math.floor(d/60000)}m`;
+      return `${Math.floor(d/3600000)}h`;
+    }
+    function showToast(msg, dur=2500) {
+      const t = document.getElementById('toast');
+      t.textContent = msg; t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), dur);
+    }
+    function playSound() {
       if (!soundEnabled) return;
       try {
         const ctx = new (window.AudioContext || window.webkitAudioContext)();
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.connect(gain);
-        gain.connect(ctx.destination);
+        const osc = ctx.createOscillator(), gain = ctx.createGain();
+        osc.connect(gain); gain.connect(ctx.destination);
         osc.frequency.setValueAtTime(800, ctx.currentTime);
         osc.frequency.setValueAtTime(1000, ctx.currentTime + 0.1);
         gain.gain.setValueAtTime(0.15, ctx.currentTime);
         gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
-        osc.start(ctx.currentTime);
-        osc.stop(ctx.currentTime + 0.3);
-      } catch (e) {}
+        osc.start(); osc.stop(ctx.currentTime + 0.3);
+      } catch(e) {}
     }
-
-    function sendBrowserNotification(request) {
-      if (notificationPermission !== 'granted') return;
-      if (document.hasFocus()) return;
+    function sendNotification(req) {
+      if (Notification.permission !== 'granted' || document.hasFocus()) return;
+      const entry = sessionMap.get(req.sessionId);
       try {
-        const n = new Notification('Claude Approve - Permission Required', {
-          body: `Tool: ${request.tool}\n${request.details || ''}`,
-          icon: '🔐',
-          tag: request.id,
-          requireInteraction: true,
+        const n = new Notification(`Claude Approve - ${entry?.info?.name || 'Session'}`, {
+          body: `Tool: ${req.tool}\n${req.details || ''}`,
+          tag: req.id, requireInteraction: true,
         });
-        n.onclick = () => { window.focus(); n.close(); };
-      } catch (e) {}
+        n.onclick = () => { window.focus(); selectSession(req.sessionId); n.close(); };
+      } catch(e) {}
     }
 
-    function escapeHtml(text) {
-      const div = document.createElement('div');
-      div.textContent = text || '';
-      return div.innerHTML;
-    }
-
-    function getTimeAgo(timestamp) {
-      if (!timestamp) return '';
-      const diff = Date.now() - new Date(timestamp).getTime();
-      if (diff < 5000) return 'just now';
-      if (diff < 60000) return `${Math.floor(diff / 1000)}s ago`;
-      if (diff < 3600000) return `${Math.floor(diff / 60000)}m ago`;
-      return `${Math.floor(diff / 3600000)}h ago`;
-    }
-
-    // --- History Panel Toggle ---
-    document.getElementById('historyBtn').addEventListener('click', () => {
-      document.getElementById('historyPanel').classList.toggle('open');
-    });
-    document.getElementById('historyClose').addEventListener('click', () => {
-      document.getElementById('historyPanel').classList.remove('open');
-    });
-
-    // --- Sound Toggle ---
-    const soundBtn = document.getElementById('soundToggle');
-    soundBtn.textContent = soundEnabled ? '🔔' : '🔕';
-    soundBtn.addEventListener('click', () => {
-      soundEnabled = !soundEnabled;
-      localStorage.setItem('sound', soundEnabled);
-      soundBtn.textContent = soundEnabled ? '🔔' : '🔕';
-      showToast(soundEnabled ? 'Sound enabled' : 'Sound disabled');
-    });
-
-    // --- Keyboard Shortcuts ---
-    document.addEventListener('keydown', (e) => {
-      // Escape closes history panel
-      if (e.key === 'Escape') {
-        document.getElementById('historyPanel').classList.remove('open');
-      }
-    });
-
-    // --- Start ---
+    // === Start ===
     connect();
-    term.focus();
-
-    // Keep time displays updated
-    setInterval(() => {
-      document.querySelectorAll('.permission-time').forEach(el => {
-        // Re-render permission cards to update time
-      });
-    }, 10000);
   </script>
 </body>
 </html>

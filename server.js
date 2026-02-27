@@ -420,14 +420,7 @@ function shutdown() {
   process.exit(0);
 }
 
-process.on('SIGINT', () => {
-  const first = sessions.values().next().value;
-  if (first?.pty && first.status === 'active') {
-    first.pty.write('\x03');
-  } else {
-    shutdown();
-  }
-});
+process.on('SIGINT', shutdown);
 process.on('SIGTERM', shutdown);
 
 // --- Start ---
@@ -449,14 +442,7 @@ server.listen(config.port, config.host, () => {
   createSession({ name: 'Default' });
 
   if (process.stdin.isTTY) {
-    ptyActive = true;
-    // Pipe first session output to terminal
-    const first = sessions.values().next().value;
-    if (first?.pty) {
-      first.pty.onData((data) => {
-        if (ptyActive) process.stdout.write(data);
-      });
-    }
-    setupTerminalPassthrough();
+    console.log('  Press Ctrl+C to stop the server.\n');
+    // Terminal passthrough disabled — use the web UI for session interaction
   }
 });

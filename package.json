@@ -1,6 +1,6 @@
 {
   "name": "claude-hub",
-  "version": "3.1.0",
+  "version": "2.6.0",
   "description": "Multi-session web dashboard for Claude Code — approve or deny tool permission requests from your browser, phone, or any device",
   "main": "server.js",
   "bin": {

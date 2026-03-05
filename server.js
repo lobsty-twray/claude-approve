@@ -343,7 +343,8 @@ function handleClientMessage(msg, ws) {
 
     case 'approve':
       if (session.pty && session.status === 'active' && session.detector.getPendingRequest()) {
-        session.pty.write('y');
+        const approveKey = session.detector.getPromptFormat() === 'old' ? 'y' : '1';
+        session.pty.write(approveKey);
         session.detector.resolveCurrentRequest('web-approve');
         updateHistoryStatus(session, msg.id, 'approved (web)');
       }
@@ -351,7 +352,8 @@ function handleClientMessage(msg, ws) {
 
     case 'deny':
       if (session.pty && session.status === 'active' && session.detector.getPendingRequest()) {
-        session.pty.write('n');
+        const denyKey = session.detector.getPromptFormat() === 'old' ? 'n' : '3';
+        session.pty.write(denyKey);
         session.detector.resolveCurrentRequest('web-deny');
         updateHistoryStatus(session, msg.id, 'denied (web)');
       }
@@ -359,7 +361,8 @@ function handleClientMessage(msg, ws) {
 
     case 'always':
       if (session.pty && session.status === 'active' && session.detector.getPendingRequest()) {
-        session.pty.write('a');
+        const alwaysKey = session.detector.getPromptFormat() === 'old' ? 'a' : '2';
+        session.pty.write(alwaysKey);
         session.detector.resolveCurrentRequest('web-always');
         updateHistoryStatus(session, msg.id, 'always (web)');
       }
@@ -406,9 +409,12 @@ function setupTerminalPassthrough() {
       return;
     }
     const char = data.toString();
-    if (s.detector.getPendingRequest() && /^[yna]$/i.test(char)) {
-      const action = { y: 'approved', n: 'denied', a: 'always' }[char.toLowerCase()];
-      s.detector.resolveCurrentRequest(`terminal-${action}`);
+    if (s.detector.getPendingRequest() && /^[yna123]$/i.test(char)) {
+      const actionMap = s.detector.getPromptFormat() === 'old'
+        ? { y: 'approved', n: 'denied', a: 'always' }
+        : { '1': 'approved', '3': 'denied', '2': 'always', y: 'approved', n: 'denied', a: 'always' };
+      const action = actionMap[char.toLowerCase()];
+      if (action) s.detector.resolveCurrentRequest(`terminal-${action}`);
     }
     s.pty.write(data);
   });
